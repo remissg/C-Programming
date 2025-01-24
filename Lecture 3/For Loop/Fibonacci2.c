@@ -7,10 +7,10 @@ int main() {
     int a = 1;
     int b = 1;
     int nextTerm;
-    printf("First %d Fibonacci numbers: ", n);
+   
 
     for (int i = 1; i <= n; ++i) {
-        printf("%d, ", a);
+        printf("%dth Fibonacci number is : %d\n", i,a);
         nextTerm = a + b;
         a = b;
         b = nextTerm;

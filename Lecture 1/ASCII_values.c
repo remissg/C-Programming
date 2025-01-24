@@ -1,6 +1,6 @@
 #include<stdio.h>
 int main (){
-    char ch = '%';
+    char ch = 'z';
     printf("%d",ch);
     return 0;
 }
