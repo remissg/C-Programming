@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/Joydip Maiti/OneDrive/Desktop/C Programming/Lecture 3",
-      "program": "c:/Users/Joydip Maiti/OneDrive/Desktop/C Programming/Lecture 3/build/Debug/outDebug",
+      "cwd": "c:/Users/Joydip Maiti/OneDrive/Desktop/C Programming/Lecture 3/For Loop",
+      "program": "c:/Users/Joydip Maiti/OneDrive/Desktop/C Programming/Lecture 3/For Loop/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
