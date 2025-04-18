@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/Joydip Maiti/OneDrive/Desktop/C Programming/Lecture 4/Pattern Printing",
-      "program": "c:/Users/Joydip Maiti/OneDrive/Desktop/C Programming/Lecture 4/Pattern Printing/build/Debug/outDebug",
+      "cwd": "c:/Users/Joydip Maiti/OneDrive/Desktop/C Programming/Lecture 6/Recursion",
+      "program": "c:/Users/Joydip Maiti/OneDrive/Desktop/C Programming/Lecture 6/Recursion/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
