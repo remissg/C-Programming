@@ -1,0 +1,11 @@
+#include<stdio.h>
+int main(){
+    int i, a = 2, b = 3;
+    int arr[2+3];
+    for(i = 0; i < a+b; i++){
+        printf("Enter value for arr[%d]: ", i);
+        scanf("%d",&arr[i]);
+        printf("%d\n",arr[i]);
+    }
+    return 0;
+}

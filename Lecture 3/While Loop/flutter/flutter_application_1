@@ -1,0 +1,488 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // For date formatting
+
+void main() {
+  runApp(FitnessApp());
+}
+
+class User {
+  int id;
+  String name;
+  int age;
+  double weight;
+  double height;
+
+  User({required this.id, required this.name, required this.age, required this.weight, required this.height});
+}
+
+class Activity {
+  int id;
+  int userId;
+  String name;
+  DateTime timestamp;
+  int durationMinutes;
+  double caloriesBurned;
+
+  Activity({
+    required this.id,
+    required this.userId,
+    required this.name,
+    required this.timestamp,
+    required this.durationMinutes,
+    required this.caloriesBurned,
+  });
+}
+
+class FitnessAppState extends ChangeNotifier {
+  List<User> users = [];
+  List<Activity> activities = [];
+  int nextUserId = 1;
+  int nextActivityId = 1;
+
+  void addUser(String name, int age, double weight, double height) {
+    final newUser = User(id: nextUserId++, name: name, age: age, weight: weight, height: height);
+    users.add(newUser);
+    notifyListeners();
+  }
+
+  List<User> getAllUsers() {
+    return users;
+  }
+
+  User? findUser(int userId) {
+    return users.firstWhere((user) => user.id == userId, orElse: () => null);
+  }
+
+  void addActivity(int userId, String name, int durationMinutes, double caloriesBurned) {
+    final user = findUser(userId);
+    if (user != null) {
+      final newActivity = Activity(
+        id: nextActivityId++,
+        userId: userId,
+        name: name,
+        timestamp: DateTime.now(),
+        durationMinutes: durationMinutes,
+        caloriesBurned: caloriesBurned,
+      );
+      activities.add(newActivity);
+      notifyListeners();
+    }
+  }
+
+  List<Activity> getUserActivities(int userId) {
+    return activities.where((activity) => activity.userId == userId).toList();
+  }
+
+  double calculateBMI(User user) {
+    if (user.height <= 0) return 0.0;
+    return user.weight / (user.height * user.height);
+  }
+
+  String getBMICategory(double bmi) {
+    if (bmi < 18.5) return "Underweight";
+    if (bmi >= 18.5 && bmi <= 24.9) return "Normal weight";
+    if (bmi >= 25.0 && bmi <= 29.9) return "Overweight";
+    return "Obese";
+  }
+}
+
+class FitnessApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Fitness App',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: HomeScreen(),
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Fitness App')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => AddUserScreen()));
+              },
+              child: Text('Add New User'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ViewUsersScreen()));
+              },
+              child: Text('View All Users'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => AddActivityScreen()));
+              },
+              child: Text('Add Activity for a User'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ViewUserActivitiesScreen()));
+              },
+              child: Text('View Activities for a User'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CalculateBMIScreen()));
+              },
+              child: Text('Calculate BMI for a User'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AddUserScreen extends StatefulWidget {
+  @override
+  _AddUserScreenState createState() => _AddUserScreenState();
+}
+
+class _AddUserScreenState extends State<AddUserScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _ageController = TextEditingController();
+  final _weightController = TextEditingController();
+  final _heightController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.findAncestorStateOfType<FitnessAppState>()!;
+    return Scaffold(
+      appBar: AppBar(title: Text('Add New User')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a name';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _ageController,
+                decoration: InputDecoration(labelText: 'Age'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an age';
+                  }
+                  if (int.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _weightController,
+                decoration: InputDecoration(labelText: 'Weight (kg)'),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a weight';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _heightController,
+                decoration: InputDecoration(labelText: 'Height (m)'),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a height';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    appState.addUser(
+                      _nameController.text,
+                      int.parse(_ageController.text),
+                      double.parse(_weightController.text),
+                      double.parse(_heightController.text),
+                    );
+                    Navigator.pop(context);
+                  }
+                },
+                child: Text('Add User'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ViewUsersScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.findAncestorStateOfType<FitnessAppState>()!;
+    return Scaffold(
+      appBar: AppBar(title: Text('View All Users')),
+      body: ListView.builder(
+        itemCount: appState.users.length,
+        itemBuilder: (context, index) {
+          final user = appState.users[index];
+          return ListTile(
+            title: Text(user.name),
+            subtitle: Text('ID: ${user.id}, Age: ${user.age}, Weight: ${user.weight}kg, Height: ${user.height}m'),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class AddActivityScreen extends StatefulWidget {
+  @override
+  _AddActivityScreenState createState() => _AddActivityScreenState();
+}
+
+class _AddActivityScreenState extends State<AddActivityScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _userIdController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _durationController = TextEditingController();
+  final _caloriesController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.findAncestorStateOfType<FitnessAppState>()!;
+    return Scaffold(
+      appBar: AppBar(title: Text('Add Activity')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              TextFormField(
+                controller: _userIdController,
+                decoration: InputDecoration(labelText: 'User ID'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a User ID';
+                  }
+                  if (int.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  if (appState.findUser(int.parse(value)) == null) {
+                    return 'User with this ID not found';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Activity Name'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an activity name';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _durationController,
+                decoration: InputDecoration(labelText: 'Duration (minutes)'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the duration';
+                  }
+                  if (int.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _caloriesController,
+                decoration: InputDecoration(labelText: 'Calories Burned'),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter calories burned';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    appState.addActivity(
+                      int.parse(_userIdController.text),
+                      _nameController.text,
+                      int.parse(_durationController.text),
+                      double.parse(_caloriesController.text),
+                    );
+                    Navigator.pop(context);
+                  }
+                },
+                child: Text('Add Activity'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ViewUserActivitiesScreen extends StatefulWidget {
+  @override
+  _ViewUserActivitiesScreenState createState() => _ViewUserActivitiesScreenState();
+}
+
+class _ViewUserActivitiesScreenState extends State<ViewUserActivitiesScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _userIdController = TextEditingController();
+  List<Activity> _userActivities = [];
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.findAncestorStateOfType<FitnessAppState>()!;
+    return Scaffold(
+      appBar: AppBar(title: Text('View User Activities')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            Form(
+              key: _formKey,
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: TextFormField(
+                      controller: _userIdController,
+                      decoration: InputDecoration(labelText: 'Enter User ID'),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a User ID';
+                        }
+                        if (int.tryParse(value) == null) {
+                          return 'Please enter a valid number';
+                        }
+                        if (appState.findUser(int.parse(value)) == null) {
+                          return 'User with this ID not found';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        setState(() {
+                          _userActivities = appState.getUserActivities(int.parse(_userIdController.text));
+                        });
+                      }
+                    },
+                    child: Text('View'),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _userActivities.length,
+                itemBuilder: (context, index) {
+                  final activity = _userActivities[index];
+                  final formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(activity.timestamp);
+                  return ListTile(
+                    title: Text(activity.name),
+                    subtitle: Text('ID: ${activity.id}, Date: $formattedDate, Duration: ${activity.durationMinutes} min, Calories: ${activity.caloriesBurned}'),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CalculateBMIScreen extends StatefulWidget {
+  @override
+  _CalculateBMIScreenState createState() => _CalculateBMIScreenState();
+}
+
+class _CalculateBMIScreenState extends State<CalculateBMIScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _userIdController = TextEditingController();
+  String _bmiResult = '';
+  String _bmiCategory = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.findAncestorStateOfType<FitnessAppState>()!;
+    return Scaffold(
+      appBar: AppBar(title: Text('Calculate BMI')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            Form(
+              key: _formKey,
+              child: TextFormField(
+                controller: _userIdController,
+                decoration: InputDecoration(labelText: 'Enter User ID'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a User ID';
+                  }
+                  if (int.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  if (appState.findUser(int.parse(value)) == null) {
+                    return 'User with this ID not found';
+                  }
+                  return null;
+                },
+              ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  final user = appState.findUser(int.parse(_userIdController.text));
+                  if (user != null) {
+                    final bmi = appState.calculateBMI(user);
+                    final category = appState.
